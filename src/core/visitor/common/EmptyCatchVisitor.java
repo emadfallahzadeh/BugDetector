@@ -13,6 +13,8 @@ import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.IBinding;
+import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.InfixExpression;
@@ -36,16 +38,32 @@ public class EmptyCatchVisitor extends ASTVisitor {
 	private CompilationUnit parsedunit;
 
 	private Map<IVariableBinding, VariableTrack> booleanVariablesMap = new HashMap<IVariableBinding, VariableTrack>();
+	private Method callsite;
+	
+	private int emptyCatchBlockCount = 0;
+	private int uselessConditionCount = 0;
+	
+	public int getUselessConditionCount() {
+		return uselessConditionCount;
+	}
+	
 	public EmptyCatchVisitor(IPackageFragment packageFrag, ICompilationUnit unit, CompilationUnit parsedunit) {
 
-		className = unit.getElementName().split("\\.")[0];
+		
+		//className = unit.getElementName().split("\\.")[0];
 		this.parsedunit = parsedunit;
 
 	} 
 
 	public boolean visit(MethodDeclaration method) {
-
-		final Method callsite = ObjectCreationHelper.createMethodFromMethodDeclaration(method, className);
+		IMethodBinding binding = method.resolveBinding();
+        if (binding != null) {
+            ITypeBinding type = binding.getDeclaringClass();
+            if (type != null) {
+                className = type.getName();
+            }
+        }
+		callsite = ObjectCreationHelper.createMethodFromMethodDeclaration(method, className);
 
 		if (method.getBody() != null) {
 			method.getBody().accept(new ASTVisitor() {
@@ -74,12 +92,13 @@ public class EmptyCatchVisitor extends ASTVisitor {
 				@Override
 				public boolean visit(IfStatement ifS) { 
 					Expression ifExpression = ifS.getExpression();
+					int lineNumber = parsedunit.getLineNumber(ifS.getStartPosition());
 					if(ifExpression instanceof BooleanLiteral) //if(true) if(false)   
-						System.out.println(ifS.toString());				
+						saveBug(BugType.UselessCondition, lineNumber);					
 					else if(ifExpression instanceof SimpleName) {  
 						IBinding binding = ((SimpleName)ifS.getExpression()).resolveBinding(); //if(a) [a=true/false]
 						if(booleanVariablesMap.containsKey(binding) && !booleanVariablesMap.get(binding).HasAssignment())
-							System.out.println(ifS.toString());						
+							saveBug(BugType.UselessCondition, lineNumber);					
 					}					
 					else if(ifExpression instanceof InfixExpression) { 
 						  Expression leftOperand = ((InfixExpression)ifS.getExpression()).getLeftOperand();
@@ -87,12 +106,12 @@ public class EmptyCatchVisitor extends ASTVisitor {
 						  if(leftOperand instanceof SimpleName && rightOperand instanceof BooleanLiteral) { //if(a == true)
 							  IBinding binding = ((SimpleName)leftOperand).resolveBinding();
 							  if(booleanVariablesMap.containsKey(binding) && !booleanVariablesMap.get(binding).HasAssignment())
-								  System.out.println(ifS.toString());									  
+								  saveBug(BugType.UselessCondition, lineNumber);									  
 						  }	
 						  else if(leftOperand instanceof BooleanLiteral && rightOperand instanceof SimpleName) { //if(true == a)
 							  IBinding binding = ((SimpleName)rightOperand).resolveBinding();
 							  if(booleanVariablesMap.containsKey(binding) && !booleanVariablesMap.get(binding).HasAssignment())
-								  System.out.println(ifS.toString());								  
+								  saveBug(BugType.UselessCondition, lineNumber);								  
 						  }	
 					}					  
 					
@@ -127,4 +146,25 @@ public class EmptyCatchVisitor extends ASTVisitor {
 		return true;
 	}
 
+	private void saveBug(BugType bugType, int lineNumber) {
+		System.out.println(bugType + "  " + callsite + "  " + lineNumber);
+		String str = "\n<bugType>"+ bugType + "</bugType>"
+				   + "<system>" + sysName + "</system>" 
+				   + "<callsite>" + callsite + "</callsite>" 
+				   + "<line>" + lineNumber + "</line>\n";
+		try {
+			HelperClass.fileAppendMethod(fileName, str);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		switch(bugType) {
+			case UselessCondition: uselessConditionCount++;
+			break;
+		}
+	}
+}
+
+enum BugType{
+	EmptyCatchBlock,
+	UselessCondition
 }
