@@ -41,7 +41,7 @@ public class EmptyCatchVisitor extends ASTVisitor {
 		className = unit.getElementName().split("\\.")[0];
 		this.parsedunit = parsedunit;
 
-	}
+	} 
 
 	public boolean visit(MethodDeclaration method) {
 
