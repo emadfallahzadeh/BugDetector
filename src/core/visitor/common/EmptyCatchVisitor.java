@@ -1,12 +1,25 @@
 package core.visitor.common;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.Assignment;
+import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.IBinding;
+import org.eclipse.jdt.core.dom.IVariableBinding;
+import org.eclipse.jdt.core.dom.IfStatement;
+import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.IPackageFragment;
 
 
@@ -22,6 +35,7 @@ public class EmptyCatchVisitor extends ASTVisitor {
 	private String className = "";
 	private CompilationUnit parsedunit;
 
+	private Map<IVariableBinding, VariableTrack> booleanVariablesMap = new HashMap<IVariableBinding, VariableTrack>();
 	public EmptyCatchVisitor(IPackageFragment packageFrag, ICompilationUnit unit, CompilationUnit parsedunit) {
 
 		className = unit.getElementName().split("\\.")[0];
@@ -35,6 +49,55 @@ public class EmptyCatchVisitor extends ASTVisitor {
 
 		if (method.getBody() != null) {
 			method.getBody().accept(new ASTVisitor() {
+				@Override
+				public boolean visit(VariableDeclarationStatement variableDeclaration) {
+					if(variableDeclaration.getType().toString().equals("boolean")) { 
+						for (Iterator iterator = variableDeclaration.fragments().iterator(); iterator.hasNext();) {
+							VariableDeclarationFragment declarationFragment = (VariableDeclarationFragment) iterator.next();
+							IVariableBinding variableBinding = declarationFragment.resolveBinding();
+							booleanVariablesMap.put(variableBinding, new VariableTrack());
+						}				
+					}
+					return false;
+				}				
+				@Override
+				public boolean visit(Assignment assignment) {
+					if(assignment.getLeftHandSide() instanceof SimpleName) {
+						IBinding binding = ((SimpleName)assignment.getLeftHandSide()).resolveBinding();	
+						if(booleanVariablesMap.containsKey(binding)) {
+							VariableTrack variableTrack = booleanVariablesMap.get(binding);
+							variableTrack.DeclareAssignemnt();
+						}	
+					}
+					return false;
+				}				
+				@Override
+				public boolean visit(IfStatement ifS) { 
+					Expression ifExpression = ifS.getExpression();
+					if(ifExpression instanceof BooleanLiteral) //if(true) if(false)   
+						System.out.println(ifS.toString());				
+					else if(ifExpression instanceof SimpleName) {  
+						IBinding binding = ((SimpleName)ifS.getExpression()).resolveBinding(); //if(a) [a=true/false]
+						if(booleanVariablesMap.containsKey(binding) && !booleanVariablesMap.get(binding).HasAssignment())
+							System.out.println(ifS.toString());						
+					}					
+					else if(ifExpression instanceof InfixExpression) { 
+						  Expression leftOperand = ((InfixExpression)ifS.getExpression()).getLeftOperand();
+						  Expression rightOperand = ((InfixExpression)ifS.getExpression()).getRightOperand();
+						  if(leftOperand instanceof SimpleName && rightOperand instanceof BooleanLiteral) { //if(a == true)
+							  IBinding binding = ((SimpleName)leftOperand).resolveBinding();
+							  if(booleanVariablesMap.containsKey(binding) && !booleanVariablesMap.get(binding).HasAssignment())
+								  System.out.println(ifS.toString());									  
+						  }	
+						  else if(leftOperand instanceof BooleanLiteral && rightOperand instanceof SimpleName) { //if(true == a)
+							  IBinding binding = ((SimpleName)rightOperand).resolveBinding();
+							  if(booleanVariablesMap.containsKey(binding) && !booleanVariablesMap.get(binding).HasAssignment())
+								  System.out.println(ifS.toString());								  
+						  }	
+					}					  
+					
+					return true;		
+				}
 				@Override
 				public boolean visit(CatchClause ca) {
 
