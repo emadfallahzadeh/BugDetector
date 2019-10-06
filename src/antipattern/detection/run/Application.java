@@ -20,6 +20,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 
 
 import core.visitor.common.EmptyCatchVisitor;
+import core.visitor.common.EqualHashCode;
 
 
 public class Application implements IApplication {
@@ -96,9 +97,14 @@ public class Application implements IApplication {
 				continue;
 
 			CompilationUnit parsedUnit = parse(unit);
+			EqualHashCode exVisitor = new EqualHashCode(mypackage, unit, parsedUnit,this); //this is for 1th pattern
 
-			EmptyCatchVisitor exVisitor = new EmptyCatchVisitor(mypackage, unit, parsedUnit);
-			
+			//EmptyCatchVisitor exVisitor = new EmptyCatchVisitor(mypackage, unit, parsedUnit);
+			if(exVisitor.hasEqual==true && exVisitor.hasHashcode==false) { //this is for 1th pattern
+		        System.out.println("bug report");   //this is for 1th pattern
+		        System.out.println(exVisitor.str);    //this is for 1th pattern
+		      }  //this is for 1th pattern
+						
 			
 
 			parsedUnit.accept(exVisitor);
