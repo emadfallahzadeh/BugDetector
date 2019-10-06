@@ -24,6 +24,10 @@ import core.visitor.common.EmptyCatchVisitor;
 
 public class Application implements IApplication {
 	
+	public static int aa=0;
+	public int cont=0;
+
+	
 
 	@Override
 	public Object start(IApplicationContext context) throws Exception {
