@@ -110,7 +110,9 @@ public class Application implements IApplication {
 
 
 			parsedUnit.accept(exVisitor);
-			parsedUnit.accept(uselessConditionVisitor);			
+			parsedUnit.accept(uselessConditionVisitor);
+			parsedUnit.accept(sameCatchVisitor);
+			parsedUnit.accept(closeStream);
 			
 			if(exVisitor.hasEqual==true && exVisitor.hasHashcode==false) { //this is for 1th pattern
 		        System.out.println("EqualHashCodeBug");   //this is for 1th pattern
