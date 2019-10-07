@@ -8,6 +8,8 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SimpleName;
@@ -26,6 +28,7 @@ public class SameCatchVisitor extends ASTVisitor {
 	public Application app;
 	public boolean hasEqual=false;
 	public boolean hasHashcode=false;
+	private int count=0;
 	
 	public Map<IVariableBinding, VariableTrack> booleanVariablesMap = new HashMap<IVariableBinding, VariableTrack>();
 	
@@ -35,7 +38,7 @@ public class SameCatchVisitor extends ASTVisitor {
 		
 		this.app=app;
 
-		className = unit.getElementName().split("\\.")[0];
+	//	className = unit.getElementName().split("\\.")[0];
 		this.parsedunit = parsedunit;
 
 
@@ -44,6 +47,15 @@ public class SameCatchVisitor extends ASTVisitor {
 	
 	
 	public boolean visit(MethodDeclaration method) {
+		
+		IMethodBinding binding = method.resolveBinding();
+        if (binding != null) {
+            ITypeBinding type = binding.getDeclaringClass();
+            if (type != null) {
+                className = type.getName();
+            }
+        }
+
 
 		final Method callsite = ObjectCreationHelper.createMethodFromMethodDeclaration(method, className);
 
@@ -103,6 +115,7 @@ public class SameCatchVisitor extends ASTVisitor {
 										System.out.println(cheking);
 										app.aa++;
 										System.out.println(app.aa);
+										setCount(getCount() + 1);
 										break;
 										
 										
@@ -128,6 +141,18 @@ public class SameCatchVisitor extends ASTVisitor {
 		}
 
 		return true;
+	}
+
+
+
+	public int getCount() {
+		return count;
+	}
+
+
+
+	public void setCount(int count) {
+		this.count = count;
 	}
 
 
