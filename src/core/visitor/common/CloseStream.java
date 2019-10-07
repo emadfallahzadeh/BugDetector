@@ -10,6 +10,8 @@ import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.IBinding;
+import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
@@ -43,12 +45,21 @@ public class CloseStream extends ASTVisitor {
 	 public CloseStream(IPackageFragment packageFrag, ICompilationUnit unit, CompilationUnit parsedunit,Application app ) {
 		 
 			this.app=app;
-			className = unit.getElementName().split("\\.")[0];
+	//		className = unit.getElementName().split("\\.")[0];
 			this.parsedunit = parsedunit;	
 			
 	}
 	 
 		public boolean visit(MethodDeclaration method) {
+			
+			IMethodBinding binding = method.resolveBinding();
+	        if (binding != null) {
+	            ITypeBinding type = binding.getDeclaringClass();
+	            if (type != null) {
+	                className = type.getName();
+	            }
+	        }
+
 
 			final Method callsite = ObjectCreationHelper.createMethodFromMethodDeclaration(method, className);
 
@@ -95,14 +106,7 @@ public class CloseStream extends ASTVisitor {
 					}		
 					
 					
-					
-			//		@Override
-			//		public boolean visit(TryStatement ca) {
-						
-			//			try {
-							
-				//			ca.getFinally().accept(new ASTVisitor() {
-								
+
 								
 								
 								@Override
@@ -128,27 +132,7 @@ public class CloseStream extends ASTVisitor {
 									return true;
 								}		
 
-								
-								
-								
-			//				});
-
-							
-							
-							
-			//			} catch (Exception e) {
-							// TODO: handle exception
-			//			}
-						
-			
-			//			return true;
-			//		}
-
-					
-					
 	
-					
-					
 					
 					
 					
