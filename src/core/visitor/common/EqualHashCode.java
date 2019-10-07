@@ -6,6 +6,8 @@ import java.util.Map;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import antipattern.detection.run.Application;
@@ -28,18 +30,21 @@ public class EqualHashCode extends ASTVisitor {
 	public boolean hasHashcode=false;
 	public String str;
 		
-	public Map<IVariableBinding, VariableTrack> booleanVariablesMap = new HashMap<IVariableBinding, VariableTrack>();
-		
 	public EqualHashCode(IPackageFragment packageFrag, ICompilationUnit unit, CompilationUnit parsedunit,Application app ) {
 		
 		this.app=app;
-
-		className = unit.getElementName().split("\\.")[0];
+		//className = unit.getElementName().split("\\.")[0];
 		this.parsedunit = parsedunit;
 	}
 	
 	public boolean visit(MethodDeclaration method) {
-
+		IMethodBinding binding = method.resolveBinding();
+        if (binding != null) {
+            ITypeBinding type = binding.getDeclaringClass();
+            if (type != null) {
+                className = type.getName();
+            }
+        }
 		final Method callsite = ObjectCreationHelper.createMethodFromMethodDeclaration(method, className);
 		
 		String ar=method.getName().toString();

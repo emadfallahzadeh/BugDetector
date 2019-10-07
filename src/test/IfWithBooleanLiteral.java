@@ -9,7 +9,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import core.visitor.common.EmptyCatchVisitor;
+import core.visitor.common.UselessConditionVisitor;
 
 public class IfWithBooleanLiteral {
 	ASTParser parser;
@@ -43,7 +43,7 @@ public class IfWithBooleanLiteral {
 		CompilationUnit compilationUnit = (CompilationUnit) parser.createAST(null);
 
 		// Act
-		EmptyCatchVisitor ecVisitor = new EmptyCatchVisitor(
+		UselessConditionVisitor ecVisitor = new UselessConditionVisitor(
 				null, null, compilationUnit);
 		compilationUnit.accept(ecVisitor);
 		

@@ -7,13 +7,11 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import core.visitor.common.UselessConditionVisitor;
+import core.visitor.common.EqualHashCode;
 
-public class IfWithPredeterminedVariable {
-
+public class EqaulsAndHashCodeExist {
 	ASTParser parser;
 	
 	@Before
@@ -34,12 +32,13 @@ public class IfWithPredeterminedVariable {
 		String javaSource = 
 				"package MyProj;\n" + 
 				"public class MyProj {\n" + 
-				"	public static void main(String[] args) {\n" + 
-				"		boolean a = true;\n" + 
-				"		if (a)\n" + 
-				"			return;\n" + 
-				"		if (a == false)\n" + 
-				"			return;\n" + 
+				"	@Override\n" + 
+				"	public boolean equals(Object obj){\n" + 
+				"		return true;\n" + 
+				"	}	\n" + 
+				"	@Override\n" + 
+				"	public int hashCode() {\n" + 
+				"		return 0;\n" + 
 				"	}\n" + 
 				"}";
 		
@@ -47,12 +46,11 @@ public class IfWithPredeterminedVariable {
 		CompilationUnit compilationUnit = (CompilationUnit) parser.createAST(null);
 
 		// Act
-		UselessConditionVisitor ecVisitor = new UselessConditionVisitor(
-				null, null, compilationUnit);
-		compilationUnit.accept(ecVisitor);
-		
+		EqualHashCode eualHashCodeVisitor = new EqualHashCode(null, null, compilationUnit, null); 
+		compilationUnit.accept(eualHashCodeVisitor);
+
 		// Assert
-	    assertEquals(2, ecVisitor.getUselessConditionCount());
+	    assertEquals(true, eualHashCodeVisitor.hasEqual==true && eualHashCodeVisitor.hasHashcode==true);
 	}
 	
 	@After
