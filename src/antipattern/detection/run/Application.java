@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -18,11 +19,14 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-
+import org.eclipse.jdt.core.dom.IVariableBinding;
 
 import core.visitor.common.UselessConditionVisitor;
+import core.visitor.common.VariableTrack;
 import core.helper.HelperClass;
+import core.visitor.common.CloseStream;
 import core.visitor.common.EqualHashCode;
+import core.visitor.common.SameCatchVisitor;
 
 
 public class Application implements IApplication {
@@ -100,7 +104,11 @@ public class Application implements IApplication {
 
 			CompilationUnit parsedUnit = parse(unit);
 			EqualHashCode exVisitor = new EqualHashCode(mypackage, unit, parsedUnit,this); //this is for 1th pattern
-			UselessConditionVisitor uselessConditionVisitor = new UselessConditionVisitor(mypackage, unit, parsedUnit);
+			UselessConditionVisitor uselessConditionVisitor = new UselessConditionVisitor(mypackage, unit, parsedUnit);// this is for 3th pattern
+			SameCatchVisitor sameCatchVisitor = new SameCatchVisitor(mypackage, unit, parsedUnit,this); //this is for 4th pattern 
+			CloseStream closeStream= new CloseStream(mypackage, unit, parsedUnit,this); //this is for 2th pattern
+
+
 			parsedUnit.accept(exVisitor);
 			parsedUnit.accept(uselessConditionVisitor);			
 			
@@ -112,7 +120,22 @@ public class Application implements IApplication {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-		      }  //this is for 1th pattern
+		      }//this is for 1th pattern
+			
+			for(Entry<IVariableBinding, VariableTrack> entry:closeStream.booleanVariablesMap.entrySet()) {
+				if(!entry.getValue().HasAssignment()) { //this is for 2th pattern
+					System.out.println(entry.getValue().lineOfCode); //this is for 2th pattern
+					cont++;
+					System.out.println(cont);
+				} //this is for 2th pattern
+
+			}
+			
+			
+			
+			
+			
+			
 		}
 
 	}
