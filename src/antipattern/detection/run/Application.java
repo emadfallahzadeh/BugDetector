@@ -98,17 +98,14 @@ public class Application implements IApplication {
 
 			CompilationUnit parsedUnit = parse(unit);
 			EqualHashCode exVisitor = new EqualHashCode(mypackage, unit, parsedUnit,this); //this is for 1th pattern
-
-			//EmptyCatchVisitor exVisitor = new EmptyCatchVisitor(mypackage, unit, parsedUnit);
+			EmptyCatchVisitor ecVisitor = new EmptyCatchVisitor(mypackage, unit, parsedUnit);
+			parsedUnit.accept(exVisitor);
+			parsedUnit.accept(ecVisitor);			
+			
 			if(exVisitor.hasEqual==true && exVisitor.hasHashcode==false) { //this is for 1th pattern
 		        System.out.println("bug report");   //this is for 1th pattern
 		        System.out.println(exVisitor.str);    //this is for 1th pattern
 		      }  //this is for 1th pattern
-						
-			
-
-			parsedUnit.accept(exVisitor);
-
 		}
 
 	}
