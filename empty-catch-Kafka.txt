@@ -1,0 +1,3 @@
+
+<bugType>UselessCondition</bugType><system>Kafka-2.3.0</system><callsite>MyProj.MyProj.main</callsite><line>5</line>
+

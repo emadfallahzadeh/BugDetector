@@ -1,6 +1,7 @@
 package antipattern.detection.run;
 
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -19,7 +20,8 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 
-import core.visitor.common.EmptyCatchVisitor;
+import core.visitor.common.UselessConditionVisitor;
+import core.helper.HelperClass;
 import core.visitor.common.EqualHashCode;
 
 
@@ -27,7 +29,7 @@ public class Application implements IApplication {
 	
 	public static int aa=0;
 	public int cont=0;
-
+	private String fileName = "empty-catch-Kafka.txt"; //Name of the output file that you wish to have
 	
 
 	@Override
@@ -98,17 +100,19 @@ public class Application implements IApplication {
 
 			CompilationUnit parsedUnit = parse(unit);
 			EqualHashCode exVisitor = new EqualHashCode(mypackage, unit, parsedUnit,this); //this is for 1th pattern
-
-			//EmptyCatchVisitor exVisitor = new EmptyCatchVisitor(mypackage, unit, parsedUnit);
-			if(exVisitor.hasEqual==true && exVisitor.hasHashcode==false) { //this is for 1th pattern
-		        System.out.println("bug report");   //this is for 1th pattern
-		        System.out.println(exVisitor.str);    //this is for 1th pattern
-		      }  //this is for 1th pattern
-						
-			
-
+			UselessConditionVisitor uselessConditionVisitor = new UselessConditionVisitor(mypackage, unit, parsedUnit);
 			parsedUnit.accept(exVisitor);
-
+			parsedUnit.accept(uselessConditionVisitor);			
+			
+			if(exVisitor.hasEqual==true && exVisitor.hasHashcode==false) { //this is for 1th pattern
+		        System.out.println("EqualHashCodeBug");   //this is for 1th pattern
+		        System.out.println(exVisitor.str);    //this is for 1th pattern
+				try {
+					HelperClass.fileAppendMethod(fileName, exVisitor.str);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		      }  //this is for 1th pattern
 		}
 
 	}
