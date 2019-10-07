@@ -30,7 +30,7 @@ import core.datastructure.impl.Method;
 import core.helper.HelperClass;
 import core.helper.ObjectCreationHelper;
 
-public class EmptyCatchVisitor extends ASTVisitor {
+public class UselessConditionVisitor extends ASTVisitor {
 
 	private String fileName = "empty-catch-Kafka.txt"; //Name of the output file that you wish to have
 	private String sysName = "Kafka-2.3.0"; //Name of the project
@@ -40,19 +40,15 @@ public class EmptyCatchVisitor extends ASTVisitor {
 	private Map<IVariableBinding, VariableTrack> booleanVariablesMap = new HashMap<IVariableBinding, VariableTrack>();
 	private Method callsite;
 	
-	private int emptyCatchBlockCount = 0;
 	private int uselessConditionCount = 0;
 	
 	public int getUselessConditionCount() {
 		return uselessConditionCount;
 	}
 	
-	public EmptyCatchVisitor(IPackageFragment packageFrag, ICompilationUnit unit, CompilationUnit parsedunit) {
-
-		
+	public UselessConditionVisitor(IPackageFragment packageFrag, ICompilationUnit unit, CompilationUnit parsedunit) {
 		//className = unit.getElementName().split("\\.")[0];
 		this.parsedunit = parsedunit;
-
 	} 
 
 	public boolean visit(MethodDeclaration method) {
@@ -117,27 +113,6 @@ public class EmptyCatchVisitor extends ASTVisitor {
 					
 					return true;		
 				}
-				@Override
-				public boolean visit(CatchClause ca) {
-
-					String catchBody = ca.getBody().toString().replaceAll("\\{", "").replaceAll("\\}", "")
-							.replaceAll(" ", "").replaceAll("\r", "").replaceAll("\n", "");
-					int lineNumber = parsedunit.getLineNumber(ca.getStartPosition());
-					if (catchBody.equals("")) {
-
-						//System.out.println("Empty Catch Block:" + callsite + " :" + lineNumber);
-						String str = "<system>" + sysName + "</system>" + "<callsite>" + callsite
-								+ "</callsite>" + "<line>" + lineNumber + "</line>";
-						try {
-							HelperClass.fileAppendMethod(fileName, str);
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-
-					}
-
-					return true;
-				}
 
 			});
 
@@ -165,6 +140,5 @@ public class EmptyCatchVisitor extends ASTVisitor {
 }
 
 enum BugType{
-	EmptyCatchBlock,
 	UselessCondition
 }

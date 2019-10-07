@@ -30,8 +30,6 @@ public class EqualHashCode extends ASTVisitor {
 	public boolean hasHashcode=false;
 	public String str;
 		
-	public Map<IVariableBinding, VariableTrack> booleanVariablesMap = new HashMap<IVariableBinding, VariableTrack>();
-		
 	public EqualHashCode(IPackageFragment packageFrag, ICompilationUnit unit, CompilationUnit parsedunit,Application app ) {
 		
 		this.app=app;

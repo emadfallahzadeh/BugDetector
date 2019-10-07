@@ -10,7 +10,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import core.visitor.common.EmptyCatchVisitor;
+import core.visitor.common.UselessConditionVisitor;
 
 public class IfWithPredeterminedVariable {
 
@@ -47,7 +47,7 @@ public class IfWithPredeterminedVariable {
 		CompilationUnit compilationUnit = (CompilationUnit) parser.createAST(null);
 
 		// Act
-		EmptyCatchVisitor ecVisitor = new EmptyCatchVisitor(
+		UselessConditionVisitor ecVisitor = new UselessConditionVisitor(
 				null, null, compilationUnit);
 		compilationUnit.accept(ecVisitor);
 		
